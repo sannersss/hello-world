@@ -1,11 +1,204 @@
-<!DOCTYPE html>
+let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Hello World - Dynamic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            overflow: hidden;
+            cursor: none;
+            font-family: 'Arial', sans-serif;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        .hello-world {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: bold;
+            text-align: center;
+            color: hsl(var(--hue, 200), 70%, 60%);
+            text-shadow: 
+                0 0 20px hsla(var(--hue, 200), 70%, 60%, 0.5),
+                0 0 40px hsla(var(--hue, 200), 70%, 60%, 0.3),
+                0 0 80px hsla(var(--hue, 200), 70%, 60%, 0.2);
+            transform: 
+                perspective(1000px) 
+                rotateX(var(--rotate-x, 0deg)) 
+                rotateY(var(--rotate-y, 0deg))
+                scale(var(--scale, 1));
+            transition: all 0.1s ease-out;
+            letter-spacing: 0.1em;
+            user-select: none;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, hsla(var(--hue, 200), 70%, 60%, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            transition: all 0.1s ease-out;
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: hsla(var(--hue, 200), 70%, 60%, 0.6);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .hello-world {
+                font-size: clamp(2rem, 10vw, 4rem);
+            }
+            
+            .cursor-glow {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
-    hello world
+    <div class="cursor-glow"></div>
+    <div class="particles"></div>
+    <div class="container">
+        <h1 class="hello-world">Hello World!</h1>
+    </div>
+
+    <script>
+        const text = document.querySelector('.hello-world');
+        const cursorGlow = document.querySelector('.cursor-glow');
+        const body = document.body;
+        const particles = document.querySelector('.particles');
+        
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            particles.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 8000);
+        }
+        
+        // Generate particles periodically
+        setInterval(createParticle, 300);
+        
+        // Mouse movement handler
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Calculate normalized positions (0-1)
+            const normalizedX = mouseX / window.innerWidth;
+            const normalizedY = mouseY / window.innerHeight;
+            
+            // Calculate hue based on position (0-360 degrees)
+            const hue = Math.floor(normalizedX * 360);
+            
+            // Calculate rotation based on distance from center
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const distanceX = (mouseX - centerX) / centerX;
+            const distanceY = (mouseY - centerY) / centerY;
+            
+            const rotateY = distanceX * 15; // Max 15 degrees
+            const rotateX = -distanceY * 15; // Negative for natural feel
+            
+            // Calculate scale based on distance from center
+            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+            const scale = 1 + (distance * 0.1); // Slight scale increase
+            
+            // Update CSS custom properties
+            body.style.setProperty('--mouse-x', (normalizedX * 100) + '%');
+            body.style.setProperty('--mouse-y', (normalizedY * 100) + '%');
+            body.style.setProperty('--hue', hue);
+            body.style.setProperty('--rotate-x', rotateX + 'deg');
+            body.style.setProperty('--rotate-y', rotateY + 'deg');
+            body.style.setProperty('--scale', scale);
+            
+            // Update cursor glow position
+            cursorGlow.style.left = mouseX + 'px';
+            cursorGlow.style.top = mouseY + 'px';
+        });
+        
+        // Touch support for mobile
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            mouseX = touch.clientX;
+            mouseY = touch.clientY;
+            
+            // Trigger the same logic as mouse move
+            document.dispatchEvent(new MouseEvent('mousemove', {
+                clientX: mouseX,
+                clientY: mouseY
+            }));
+        });
+        
+        // Initialize with center position
+        document.dispatchEvent(new MouseEvent('mousemove', {
+            clientX: mouseX,
+            clientY: mouseY
+        }));
+        
+
+    </script>
 </body>
 </html>
